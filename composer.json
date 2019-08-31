@@ -2,6 +2,7 @@
     "name": "deadie/ndetal_parser",
     "license": "",
     "version": "0.1",
+    "description": "ndetal.ru website parser",
     "require": {
         "php": "^7.1",
         "ext-fileinfo": "*",
