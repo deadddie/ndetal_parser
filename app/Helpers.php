@@ -36,4 +36,16 @@ class Helpers
         }
         return $ext;
     }
+
+    /**
+     * Price formatter.
+     *
+     * @param float $price
+     *
+     * @return string
+     */
+    public static function priceFormat(float $price): string
+    {
+        return number_format($price, 2, ',', '');
+    }
 }

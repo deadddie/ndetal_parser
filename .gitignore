@@ -3,4 +3,4 @@
 composer.phar
 
 # work directory
-/parsed/
+/output/

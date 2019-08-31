@@ -7,8 +7,9 @@ namespace Deadie\Parser;
 use Deadie\Helpers;
 use DiDom\Document;
 use DiDom\Element;
+use PhpOffice\PhpSpreadsheet\Reader;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Writer;
 
 /**
  * Class Combilift
@@ -18,6 +19,19 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 class Combilift implements ParserInterface
 {
     private const BRAND = 'Combilift';
+
+    // Поля шаблона
+    private const TEMPLATE_ROWS = [
+        'product_id' => 'A',
+        'name' => 'B',
+        'categories' => 'C',
+        'main_category' => 'D',
+        'sku' => 'E',
+        'model' => 'G',
+        'manufacturer' => 'H',
+        'price' => 'K',
+        'description' => 'Y',
+    ];
 
     /**
      * Get brand name.
@@ -76,7 +90,7 @@ class Combilift implements ParserInterface
     public static function getImage(Element $item): string {
         $image = false;
         $href = $item->find('td a::attr(href)')[0];
-        $itemDocument = new Document(BASE_URL . $href, true);
+        $itemDocument = new Document(PARSED_URL . $href, true);
         $imageUrl = $itemDocument->find('img.img-responsive.pb20')[0]->getNode()->getAttribute('src');
         if (@mime_content_type($imageUrl)) {
             $ext = Helpers::getImageExt($imageUrl);
@@ -108,19 +122,40 @@ class Combilift implements ParserInterface
      * @throws \PhpOffice\PhpSpreadsheet\Exception
      * @throws \PhpOffice\PhpSpreadsheet\Writer\Exception
      */
-    public static function createXLSX(array $parsed) {
-        $spreadsheet = new Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
+    public static function createXLSX(array $parsed) : void {
+        // Загрузка файла шаблона
+        $reader = new Reader\Xlsx();
+        $spreadsheet = $reader->load(TEMPLATES_DIR . 'opencart_products_template.xltx');
 
         // Установка мета-данных
         $spreadsheet->getProperties()
-            ->setCreator('LapkinLab')
-            ->setTitle('Combilift')
-            ->setDescription('Combilift parsed products');
+                    ->setCreator('deadie/ndetal_parser')
+                    ->setLastModifiedBy('deadie/ndetal_parser')
+                    ->setTitle('Combilift')
+                    ->setDescription('Combilift parsed products')
+                    ->setCompany('LapkinLab');
 
+        // Устанавка активного листа
+        $sheet = $spreadsheet->setActiveSheetIndexByName('Products');
 
+        $row = 2; // Начальная строка
+        $product_id = 1;
+        foreach ($parsed as $key => $product) {
+            // Запись данных товара
+            $sheet->setCellValue(self::TEMPLATE_ROWS['product_id'] . $row, $product_id);
+            $sheet->setCellValue(self::TEMPLATE_ROWS['name'] . $row, $product['sku'] . ' ' . $product['description']);
+            $sheet->setCellValue(self::TEMPLATE_ROWS['sku'] . $row, $product['sku']);
+            $sheet->setCellValue(self::TEMPLATE_ROWS['model'] . $row, $product['sku']);
+            $sheet->setCellValue(self::TEMPLATE_ROWS['description'] . $row, $product['description']);
 
-        $writer = new Xlsx($spreadsheet);
-        $writer->save(PARSED_DIR . self::BRAND . '_parsed_products.xlsx');
+            $row++;
+            $product_id++;
+        }
+
+        var_dump($spreadsheet);
+
+        // Запись файла
+        $writer = new Writer\Xlsx($spreadsheet);
+        $writer->save(OUTPUT_DIR . '/' . self::BRAND . '_parsed_products.xlsx');
     }
 }
