@@ -56,22 +56,4 @@ interface ParserInterface
      * @return int
      */
     public static function getPrice(Element $item): int;
-
-    /**
-     * Create CSV data file.
-     *
-     * @param array $parsed
-     *
-     * @return mixed
-     */
-    public static function createCSV(array $parsed);
-
-    /**
-     * Create XLSX spreadsheet.
-     *
-     * @param array $parsed
-     *
-     * @return mixed
-     */
-    public static function createXLSX(array $parsed);
 }

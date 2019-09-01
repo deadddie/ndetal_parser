@@ -3,7 +3,6 @@
 
 namespace Deadie;
 
-
 class Helpers
 {
     /**
@@ -48,4 +47,8 @@ class Helpers
     {
         return number_format($price, 2, ',', '');
     }
+
+    // Disable creating and copying static object of class
+    private function __construct() {}
+    private function __clone() {}
 }

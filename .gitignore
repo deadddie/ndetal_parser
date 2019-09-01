@@ -2,5 +2,6 @@
 /vendor/
 composer.phar
 
-# work directory
+# work directories
 /output/
+/temp/
