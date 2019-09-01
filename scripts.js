@@ -178,7 +178,7 @@ var parser = {
         if (currentPercent > 100) {
             currentPercent = 100;
         }
-        parser.percentValue.text(currentPercent.toFixed(3));
+        parser.percentValue.text(currentPercent.toFixed(2));
         parser.totalValue.text(parser.total);
     },
 
