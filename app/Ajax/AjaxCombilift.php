@@ -103,7 +103,7 @@ class AjaxCombilift
     public static function stopParse(): string
     {
         // Запись в выходной файл
-        $file = Combilift::BRAND . '_parsed_products.xlsx';
+        $file = Combilift::BRAND . '_parsed_products_' . date('Y-m-d_H-i-s') . '.xlsx';
         rename(Combilift::TEMP_FILE, OUTPUT_DIR . '/' . $file);
 
         // Удаление временных данных
