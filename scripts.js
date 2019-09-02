@@ -1,6 +1,7 @@
 'use strict';
 
 var parser = {
+    ajaxUrl: 'ajax.php',
 
     info: $('.info'),
     log: $('.log'),
@@ -11,14 +12,15 @@ var parser = {
 
     progressPiece: 0,
     progressPiecePercent: 0,
+
     currentPage: 1, // текущая страница
     currentPosition: 2, // текущая позиция в выходной файле
-    pagesCount: 0,
+    pagesCount: 0, // общее количество страниц
     stopped: false,
 
-    row: 2,
-    productId: 1,
-    total: 0,
+    row: 2, // первая строка в файле-шаблоне
+    productId: 1, // начальный ID товаров
+    total: 0, // общее количество товаров
 
     /**
      * Init parser.
@@ -59,7 +61,7 @@ var parser = {
      */
     startParse: function() {
         var xhr = $.ajax({
-            url: 'ajax.php',
+            url: this.ajaxUrl,
             type: 'post',
             dataType: 'json',
             data: {
@@ -101,7 +103,7 @@ var parser = {
         var output;
         this.stopped = true;
         var xhr = $.ajax({
-            url: 'ajax.php',
+            url: this.ajaxUrl,
             type: 'post',
             dataType: 'json',
             data: {
@@ -123,7 +125,7 @@ var parser = {
     processPage: function(page) {
         var output;
         var xhr = $.ajax({
-            url: 'ajax.php',
+            url: this.ajaxUrl,
             type: 'post',
             dataType: 'json',
             data: {
@@ -147,7 +149,7 @@ var parser = {
      */
     saveToTemp: function(parsed, row, productId) {
         var xhr = $.ajax({
-            url: 'ajax.php',
+            url: this.ajaxUrl,
             type: 'post',
             dataType: 'json',
             data: {

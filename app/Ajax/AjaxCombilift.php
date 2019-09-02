@@ -4,18 +4,18 @@
  * Ajax functions
  */
 
-namespace Deadie;
+namespace Deadie\Ajax;
 
 
 use Deadie\Parser\Combilift;
 use DiDom\Document;
 
 /**
- * Class Ajax
+ * Class AjaxCombilift
  *
  * @package Deadie
  */
-class Ajax
+class AjaxCombilift
 {
     /**
      * Error codes.
@@ -81,7 +81,7 @@ class Ajax
      * @return integer - all pages count
      * @throws \PhpOffice\PhpSpreadsheet\Reader\Exception
      */
-    public static function startParse(): int
+    public static function startParse($params): int
     {
         // Создание папки для работы
         Combilift::createFolders();
