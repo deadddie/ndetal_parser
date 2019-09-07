@@ -13,7 +13,7 @@ use DiDom\Element;
 interface ParserInterface
 {
     /**
-     * Get SKU.
+     * Извлечение артикула (SKU).
      *
      * @param $item
      *
@@ -22,7 +22,7 @@ interface ParserInterface
     public static function getSKU(Element $item);
 
     /**
-     * Get brand name.
+     * Извлечение названия бренда.
      *
      * @param $item
      *
@@ -31,7 +31,7 @@ interface ParserInterface
     public static function getBrand(Element $item): string;
 
     /**
-     * Get description.
+     * Извлечение описания.
      *
      * @param $item
      *
@@ -40,7 +40,7 @@ interface ParserInterface
     public static function getDescription(Element $item): string;
 
     /**
-     * Get image (path/URL).
+     * Извлечение изображения товара (путь/URL).
      *
      * @param $item
      *
@@ -49,11 +49,20 @@ interface ParserInterface
     public static function getImage(Element $item): string;
 
     /**
-     * Get price.
+     * Извлечение цены.
      *
      * @param $item
      *
      * @return int
      */
     public static function getPrice(Element $item): int;
+
+    /**
+     * Парсинг страницы.
+     *
+     * @param $page
+     *
+     * @return array
+     */
+    public static function parse($page): array;
 }
