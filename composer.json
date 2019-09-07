@@ -1,14 +1,14 @@
 {
     "name": "deadie/ndetal_parser",
     "license": "",
-    "version": "0.1",
+    "version": "0.2",
     "description": "ndetal.com website parser",
     "require": {
         "php": "^7.1",
+        "ext-json": "*",
         "ext-fileinfo": "*",
         "imangazaliev/didom": "^1.14",
-        "phpoffice/phpspreadsheet": "^1.9",
-        "ext-json": "*"
+        "phpoffice/phpspreadsheet": "^1.9"
     },
     "require-dev": {
         "roave/security-advisories": "dev-master"
