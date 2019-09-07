@@ -48,11 +48,15 @@ class Combilift implements ParserInterface
         'description' => 'Y',
     ];
 
+    // Отключение создания и копирования статического объекта класса
+    private function __construct() {}
+    private function __clone() {}
+
 
     ### МЕТОДЫ ПАРСЕРА
 
     /**
-     * Get brand name.
+     * Извлечение названия бренда.
      *
      * @param $item
      *
@@ -64,7 +68,7 @@ class Combilift implements ParserInterface
     }
 
     /**
-     * Get SKU.
+     * Извлечение артикула (SKU).
      *
      * @param $item
      *
@@ -76,7 +80,7 @@ class Combilift implements ParserInterface
     }
 
     /**
-     * Get description
+     * Извлечение описания.
      *
      * @param $item
      *
@@ -88,7 +92,7 @@ class Combilift implements ParserInterface
     }
 
     /**
-     * Get price.
+     * Извлечение цены.
      *
      * @param $item
      *
@@ -100,7 +104,7 @@ class Combilift implements ParserInterface
     }
 
     /**
-     * Get image (path/URL).
+     * Извлечение изображения товара (путь/URL).
      *
      * @param $item
      *
@@ -125,7 +129,15 @@ class Combilift implements ParserInterface
 
     ### МЕТОДЫ ОБРАБОТЧИКА
 
-    public static function parse($page): array
+    /**
+     * Парсинг страницы.
+     *
+     * @param $page
+     * @param bool $images
+     *
+     * @return array
+     */
+    public static function parse($page, $images = true): array
     {
         // Массив со спарсенными товарами
         $parsed = [];
@@ -144,11 +156,13 @@ class Combilift implements ParserInterface
             $parsed[$sku]['brand'] = self::getBrand($item);
             $parsed[$sku]['description'] = self::getDescription($item);
 
-            // Добавление изображения (загружается с детальной страницы)
-            //$image = self::getImage($item);
-            //if ($image) {
-            //    $parsed[$sku]['image'] = self::IMAGES_PATH_PREFIX . $image;
-            //}
+            if ($images) {
+                // Добавление изображения (загружается с детальной страницы)
+                $image = self::getImage($item);
+                if ($image) {
+                    $parsed[$sku]['image'] = self::IMAGES_PATH_PREFIX . $image;
+                }
+            }
         }
         return $parsed;
     }
@@ -157,9 +171,9 @@ class Combilift implements ParserInterface
     ### МЕТОДЫ РАБОТЫ С ФАЙЛАМИ И ПАПКАМИ
 
     /**
-     * Create work folders.
+     * Создание рабочих папок.
      */
-    public static function createFolders(): void
+    public static function createDirs(): void
     {
         // Создаем папку для изображений
         if (!mkdir($dir = self::IMAGES_DIR) && !is_dir($dir)) {
@@ -172,39 +186,22 @@ class Combilift implements ParserInterface
     }
 
     /**
-     * Remove temporary files and folders.
+     * Удаление временных файлов и папок.
      */
-    public static function removeFolders(): void
+    public static function removeDirs(): void
     {
         unlink(self::TEMP_FILE);
         rmdir(self::TEMP_DIR);
     }
 
     /**
-     * Create temporary XLSX spreadsheet file.
-     *
-     * @throws \PhpOffice\PhpSpreadsheet\Reader\Exception
-     */
-    public static function createTempXLSX(): void
-    {
-        // Загрузка файла шаблона во временную папку
-        $reader = new Reader\Xlsx();
-        $spreadsheet = $reader->load(TEMPLATES_DIR . 'opencart_products_template.xltx');
-        try {
-            self::saveTempXLSX($spreadsheet);
-        } catch (Writer\Exception $e) {
-            throw new \RuntimeException(sprintf('Temporary file not saved.'));
-        }
-    }
-
-    /**
-     * Load temporary XLSX spreadsheet file.
+     * Загрузка временного файла.
      *
      * @param $tempfile
      *
      * @return \PhpOffice\PhpSpreadsheet\Spreadsheet
      */
-    public static function loadTempXLSX($tempfile): ?Spreadsheet
+    public static function loadTemp($tempfile): ?Spreadsheet
     {
         $reader = new Reader\Xlsx();
         try {
@@ -215,20 +212,35 @@ class Combilift implements ParserInterface
     }
 
     /**
-     * Save temporary file to XLSX spreadsheet file.
+     * Сохранение временного файла.
      *
-     * @param $spreadsheet
+     * @param \PhpOffice\PhpSpreadsheet\Spreadsheet $spreadsheet
      *
-     * @throws \PhpOffice\PhpSpreadsheet\Writer\Exception
+     * @return void
      */
-    public static function saveTempXLSX(Spreadsheet $spreadsheet): void
+    public static function saveTemp(Spreadsheet $spreadsheet): void
     {
         $writer = new Writer\Xlsx($spreadsheet);
-        $writer->save(self::TEMP_FILE);
+        try {
+            $writer->save(self::TEMP_FILE);
+        } catch (Writer\Exception $e) {
+            throw new \RuntimeException(sprintf('Temporary file not saved.'));
+        }
     }
 
     /**
-     * Save to XLSX spreadsheet file.
+     * Создание временного файла.
+     *
+     * @param $tempfile
+     */
+    public static function createTemp($tempfile): void
+    {
+        $spreadsheet = self::loadTemp($tempfile);
+        self::saveTemp($spreadsheet);
+    }
+
+    /**
+     * Создание XLSX-файла.
      *
      * @param array $parsed
      * @param $row
@@ -236,12 +248,11 @@ class Combilift implements ParserInterface
      *
      * @return array
      * @throws \PhpOffice\PhpSpreadsheet\Exception
-     * @throws \PhpOffice\PhpSpreadsheet\Writer\Exception
      */
-    public static function saveToXLSX(array $parsed, $row, $product_id): array
+    public static function createXLSX(array $parsed, $row, $product_id): array
     {
         // Загрузка временного файла
-        $spreadsheet = self::loadTempXLSX(self::TEMP_FILE);
+        $spreadsheet = self::loadTemp(self::TEMP_FILE);
 
         // Установка активного листа
         $sheet = $spreadsheet->setActiveSheetIndexByName('Products');
@@ -253,7 +264,11 @@ class Combilift implements ParserInterface
             $sheet->setCellValue(self::TEMPLATE_ROWS['sku'] . $row, $product['sku']);
             $sheet->setCellValue(self::TEMPLATE_ROWS['model'] . $row, $product['sku']);
             $sheet->setCellValue(self::TEMPLATE_ROWS['description'] . $row, $product['description']);
-            //$sheet->setCellValue(self::TEMPLATE_ROWS['image'] . $row, $product['image']);
+            $sheet->setCellValue(self::TEMPLATE_ROWS['manufacturer'] . $row, $product['brand']);
+
+            if (!empty($product['image'])) {
+                $sheet->setCellValue(self::TEMPLATE_ROWS['image'] . $row, $product['image']);
+            }
 
             // Следующая строка и id
             $row++;
@@ -261,8 +276,7 @@ class Combilift implements ParserInterface
         }
 
         // Запись файла
-        $writer = new Writer\Xlsx($spreadsheet);
-        $writer->save(self::TEMP_FILE);
+        self::saveTemp($spreadsheet);
 
         return [
             'row' => $row,
@@ -270,7 +284,15 @@ class Combilift implements ParserInterface
         ];
     }
 
-    // Disable creating and copying static object of class
-    private function __construct() {}
-    private function __clone() {}
+    /**
+     * Сохранение XLSX-файла.
+     *
+     * @return bool
+     */
+    public static function saveXLSX()
+    {
+        $file = self::BRAND . '_parsed_' . date('Y-m-d_H-i-s') . '.xlsx';
+        rename(self::TEMP_FILE, OUTPUT_DIR . '/' . $file);
+        return $file;
+    }
 }

@@ -1,3 +1,9 @@
+/**
+ *  ndetal.com parser
+ *
+ *  @author deadie
+ */
+
 'use strict';
 
 var parser = {
@@ -22,8 +28,11 @@ var parser = {
     productId: 1, // начальный ID товаров
     total: 0, // общее количество товаров
 
+    debug: false,
+    debugPagesCount: 6,
+
     /**
-     * Init parser.
+     * Инициализация.
      */
     init: function() {
         this.currentPage = 1;
@@ -44,7 +53,7 @@ var parser = {
     },
 
     /**
-     * Bind events.
+     * Установка обработчиков событий.
      */
     bindEvents: function() {
         $(document)
@@ -57,7 +66,7 @@ var parser = {
     },
 
     /**
-     * Start parse.
+     * Запуск парсинга.
      */
     startParse: function() {
         var xhr = $.ajax({
@@ -68,36 +77,39 @@ var parser = {
                 method: 'startParse'
             }
         })
-            .done(function (pagesCount) {
-                //pagesCount = 3; // test
-                parser.pagesCount = pagesCount;
-                parser.progressPiece = parser.getProgressPiece(pagesCount);
-                parser.progressPiecePercent = 100 / pagesCount;
+        .done(function (pagesCount) {
+            var pages = parser.debug ? parser.debugPagesCount : pagesCount;
+            parser.pagesCount = pages;
+            parser.progressPiece = parser.getProgressPiece(pages);
+            parser.progressPiecePercent = 100 / pages;
 
-                while (parser.currentPage <= pagesCount) {
-                    if (!parser.stopped) {
-                        var parsed = parser.processPage(parser.currentPage);
-                        var row = parser.row;
-                        var productId = parser.productId;
-                        parser.saveToTemp(parsed, row, productId);
-                        parser.currentPage++;
-                    } else {
-                        xhr.abort();
-                    }
+            while (parser.currentPage <= pages) {
+                if (!parser.stopped) {
+                    var parsed = parser.processPage(parser.currentPage);
+                    var row = parser.row;
+                    var productId = parser.productId;
+                    parser.saveToTemp(parsed, row, productId);
+                    parser.currentPage++;
+                } else {
+                    xhr.abort();
                 }
-                parser.logger('Обработка завершена.');
+            }
+            parser.logger('Обработка завершена.');
 
-                parser.logger('Сохранение файла...');
-                var output = parser.stopParse();
-                parser.logger('Файл успешно сохранен.');
+            parser.logger('Сохранение файла...');
+            var output = parser.stopParse();
+            parser.logger('Файл успешно сохранен.');
 
-                var file = '&nbsp;<a href="'+ output +'" download target="_blank">Скачать файл</a>';
-                parser.info.find('p').append(file);
-            });
+            // Выводим ссылку на скачивание файла
+            var file = '&nbsp;<a href="'+ output +'" download target="_blank">Скачать файл</a>';
+            parser.info.find('p').append(file);
+        });
     },
 
     /**
-     * Stop parse.
+     * Остановка парсинга.
+     *
+     * @returns {*}
      */
     stopParse: function() {
         var output;
@@ -111,14 +123,14 @@ var parser = {
             },
             async: false
         })
-            .done(function (data) {
-                output = data;
-            });
+        .done(function (data) {
+            output = data;
+        });
         return output;
     },
 
     /**
-     * Process page.
+     * Обработка страницы.
      *
      * @param page
      */
@@ -134,14 +146,14 @@ var parser = {
             },
             async: false
         })
-            .done(function (data) {
-                output = data;
-            });
+        .done(function (data) {
+            output = data;
+        });
         return output;
     },
 
     /**
-     * Save parsed data to temporary file.
+     * Сохранение обработанных данных во временный файл.
      *
      * @param parsed
      * @param row
@@ -162,17 +174,17 @@ var parser = {
             },
             async: false
         })
-            .done(function (count) {
-                parser.total = parser.total + count;
-                parser.row = parser.row + count;
-                parser.productId = parser.productId + count;
-                parser.progress();
-                parser.logger('Обработана страница #' + parser.currentPage + '. Добавлено ' + count + ' товаров.');
-            });
+        .done(function (count) {
+            parser.total = parser.total + count;
+            parser.row = parser.row + count;
+            parser.productId = parser.productId + count;
+            parser.progress();
+            parser.logger('Обработана страница #' + parser.currentPage + '. Добавлено ' + count + ' товаров.');
+        });
     },
 
     /**
-     * Progress bar.
+     * Прогресс-бар.
      */
     progress: function() {
         parser.percent.width(parser.percent.width() + parser.progressPiece);
@@ -185,7 +197,7 @@ var parser = {
     },
 
     /**
-     * Get progress piece.
+     * Извлечение "кусочка" прогресса.
      *
      * @param pagesCount
      * @returns {number}
@@ -195,7 +207,7 @@ var parser = {
     },
 
     /**
-     * Add string to log.
+     * Добавление строки в экранный лог.
      * @param log
      */
     logger: function(log) {
@@ -204,7 +216,7 @@ var parser = {
     },
 
     /**
-     * Clear log.
+     * Очистка логаы.
      */
     clearLog: function () {
         parser.log.empty();

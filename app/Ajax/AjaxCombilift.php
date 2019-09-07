@@ -17,8 +17,12 @@ use DiDom\Document;
  */
 class AjaxCombilift
 {
+    // Отключение создания и копирования статического объекта класса
+    private function __construct() {}
+    private function __clone() {}
+
     /**
-     * Error codes.
+     * Коды ошибок.
      *
      * @var array Error Responses.
      */
@@ -32,7 +36,7 @@ class AjaxCombilift
     ];
 
     /**
-     * Set method name (init).
+     * Установка названия метода (инициализация).
      *
      * @param $function_name
      * @return array
@@ -45,7 +49,7 @@ class AjaxCombilift
     }
 
     /**
-     * Set error parameters.
+     * Установка параметров ошибки.
      *
      * @param $result
      * @param $error
@@ -61,7 +65,7 @@ class AjaxCombilift
     }
 
     /**
-     * Return error only.
+     * Возврат только ошибки.
      *
      * @param $error
      * @return mixed
@@ -76,16 +80,15 @@ class AjaxCombilift
     }
 
     /**
-     * Start parse.
+     * Запуск парсинга.
      *
-     * @return integer - all pages count
-     * @throws \PhpOffice\PhpSpreadsheet\Reader\Exception
+     * @return integer - общее кол-во страниц
      */
     public static function startParse($params): int
     {
         // Создание папки для работы
-        Combilift::createFolders();
-        Combilift::createTempXLSX();
+        Combilift::createDirs();
+        Combilift::createTemp(TEMPLATES_DIR . 'opencart_products_template.xltx');
 
         // Загрузка документа
         $document = new Document(Combilift::INITIAL_URL, true);
@@ -96,24 +99,19 @@ class AjaxCombilift
     }
 
     /**
-     * Stop parse.
+     * Остановка парсинга.
      *
      * @return string
      */
     public static function stopParse(): string
     {
-        // Запись в выходной файл
-        $file = Combilift::BRAND . '_parsed_products_' . date('Y-m-d_H-i-s') . '.xlsx';
-        rename(Combilift::TEMP_FILE, OUTPUT_DIR . '/' . $file);
-
-        // Удаление временных данных
-        Combilift::removeFolders();
-
+        $file = Combilift::saveXLSX();
+        Combilift::removeDirs();
         return OUTPUT_NAME . $file;
     }
 
     /**
-     * Parse page.
+     * Запуск парсинга страницы.
      *
      * @param $params
      *
@@ -121,16 +119,16 @@ class AjaxCombilift
      */
     public static function processPage($params): array
     {
-        $page = $params['page'];
-        return Combilift::parse($page);
+        return Combilift::parse($params['page'], false);
     }
 
     /**
+     * Сохранение во временный файл.
+     *
      * @param $params
      *
      * @return int
      * @throws \PhpOffice\PhpSpreadsheet\Exception
-     * @throws \PhpOffice\PhpSpreadsheet\Writer\Exception
      */
     public static function saveToTemp($params): int
     {
@@ -138,13 +136,10 @@ class AjaxCombilift
         $row = $params['data']['row'];
         $product_id = $params['data']['product_id'];
 
-        Combilift::loadTempXLSX(Combilift::TEMP_FILE);
-        Combilift::saveToXLSX($parsed, $row, $product_id);
+        Combilift::loadTemp(Combilift::TEMP_FILE);
+        Combilift::createXLSX($parsed, $row, $product_id);
 
-        return count($parsed); // Возвращаем число элементов на странице
+        // Возвращаем число элементов на странице
+        return count($parsed);
     }
-
-    // Disable creating and copying static object of class
-    private function __construct() {}
-    private function __clone() {}
 }
