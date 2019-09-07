@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5bfd4d302d39787c6781c1c938e61922",
+    "content-hash": "e44185c3a88adba53e3558c4bf16c855",
     "packages": [
         {
             "name": "imangazaliev/didom",
@@ -587,6 +587,8 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
+        "php": "^7.1",
+        "ext-json": "*",
         "ext-fileinfo": "*"
     },
     "platform-dev": []
